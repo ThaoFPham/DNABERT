@@ -20,24 +20,25 @@ using a masked language modeling (MLM) loss.
 """
 
 
-import argparse
-import glob
-import logging
-import os
-import pickle
+import argparse   #nhận tham số khi chạy script
+import glob       #tìm file theo pattern
+import logging    #ghi log
+import os    #làm việc hệ điều hành
+import pickle    #lưu hoặc load object(biến) Python
 import random
 import re
-import shutil
-from typing import Dict, List, Tuple
-from copy import deepcopy
-from multiprocessing import Pool
+import shutil     #copy move delete file hoặc folder.
+from typing import Dict, List, Tuple        #ghi chú kiểu dữ liệu cho dễ hiểu
+from copy import deepcopy        #copy object hoàn toàn độc lập, sửa biến b thì biến a không bị ảnh hưởng
+from multiprocessing import Pool        #để chạy song song nhiều CPU
 
 import numpy as np
-import torch
-from torch.nn.utils.rnn import pad_sequence
-from torch.utils.data import DataLoader, Dataset, RandomSampler, SequentialSampler
-from torch.utils.data.distributed import DistributedSampler
-from tqdm import tqdm, trange
+import torch        #thư viện chính để train DNABert
+from torch.nn.utils.rnn import pad_sequence        #thêm ký tự vào cuối (padding) để sequence ngắn có cùng chiều dài
+from torch.utils.data import DataLoader, Dataset, RandomSampler, SequentialSampler    
+#DataLoader chia dataset thành batch nhỏ khi đọc, Dataset lấy đúng dữ liệu cần và tiền xử lý sơ (không load hết tốn RAM), RandomSampler lấy dữ liệu ngẫu nhiên, SequentialSampler lấy dữ liệu theo thứ tự
+from torch.utils.data.distributed import DistributedSampler     #chia việc train cho nhiều GPU, nhiều máy
+from tqdm import tqdm, trange        #hiển thị thanh tiến trình (đã chạy được bao nhiêu bước, %hoàn thành, thời gian còn lại...) khi chạy loop
 
 from transformers import (
     WEIGHTS_NAME,
