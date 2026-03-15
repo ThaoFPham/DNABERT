@@ -648,62 +648,80 @@ def main():
     parser.add_argument(
         "--evaluate_during_training", action="store_true", help="Run evaluation during training at each logging step."
     )
-
+    #Số mẫu đưa vào mỗi lần xử lý (train hoặc đánh giá), mặc định là 4 mẫu 1 lần
     parser.add_argument("--per_gpu_train_batch_size", default=4, type=int, help="Batch size per GPU/CPU for training.")
     parser.add_argument(
         "--per_gpu_eval_batch_size", default=4, type=int, help="Batch size per GPU/CPU for evaluation."
     )
+    #Sau bao nhiêu batch mới update trọng số weight 1 lần
     parser.add_argument(
         "--gradient_accumulation_steps",
         type=int,
         default=1,
         help="Number of updates steps to accumulate before performing a backward/update pass.",
     )
+    #Tỉ lệ thay đổi weight mỗi lần update "new_weight = old_weight - gradient*learning_rate"
     parser.add_argument("--learning_rate", default=5e-5, type=float, help="The initial learning rate for Adam.")
+    #Thêm hình phạt vào loss nhằm hạn chế weight lớn, tránh overfiting
     parser.add_argument("--weight_decay", default=0.0, type=float, help="Weight decay if we apply some.")
+    #Số nhỏ thêm vào mẫu trong công thức Adam để tránh chi cho O
     parser.add_argument("--adam_epsilon", default=1e-8, type=float, help="Epsilon for Adam optimizer.")
     parser.add_argument("--beta1", default=0.9, type=float, help="Beta1 for Adam optimizer.")
     parser.add_argument("--beta2", default=0.999, type=float, help="Beta2 for Adam optimizer.")
+    #Gioi hạn độ lớn gradient
     parser.add_argument("--max_grad_norm", default=1.0, type=float, help="Max gradient norm.")
+    
+    #Số lần đọc toàn bộ dữ liệu (epochs) khi training, hiểu là training có thể đọc lại toàn dữ liệu 2-3 lần để hiểu sâu hơn
     parser.add_argument(
         "--num_train_epochs", default=1.0, type=float, help="Total number of training epochs to perform."
     )
+    #Số lần update weight (step) tối đa thì dừng training
     parser.add_argument(
         "--max_steps",
         default=-1,
         type=int,
         help="If > 0: set total number of training steps to perform. Override num_train_epochs.",
     )
+    #Điều chỉnh weight update chậm-nhanh-chậm cho đến tối ưu
     parser.add_argument("--warmup_steps", default=0, type=int, help="Linear warmup over warmup_steps.")
-
+    #Bao nhiêu step sẽ in log 1 lần
     parser.add_argument("--logging_steps", type=int, default=500, help="Log every X updates steps.")
+    #Bao nhiêu step sẽ lưu checkpoint 1 lần
     parser.add_argument("--save_steps", type=int, default=500, help="Save checkpoint every X updates steps.")
+    #Gioi hạn lưu số lượng checkpoints, xóa các checkpoint cũ
     parser.add_argument(
         "--save_total_limit",
         type=int,
         default=None,
         help="Limit the total amount of checkpoints, delete the older checkpoints in the output_dir, does not delete by default",
     )
+    #Tùy chọn đánh giá tất cả các điểm checkpoint đã lưu (bình thường chỉ đánh giá checkpoint cuối thôi)
     parser.add_argument(
         "--eval_all_checkpoints",
         action="store_true",
         help="Evaluate all checkpoints starting with the same prefix as model_name_or_path ending and ending with step number",
     )
+    #Không sử dụng CUDA (hay GPU) mặc dù có thể, chỉ chạy trên CPU
     parser.add_argument("--no_cuda", action="store_true", help="Avoid using CUDA when available")
+    #Ghi đè lên thư mục output nếu muốn training lại từ đầu, nhưng bình thường ta dùng tham số --model_name_or_path output_dir/checkpoint-latest để train tiếp
     parser.add_argument(
         "--overwrite_output_dir", action="store_true", help="Overwrite the content of the output directory"
     )
+    #Viết đè lên bộ nhớ catche, cũng như trên
     parser.add_argument(
         "--overwrite_cache", action="store_true", help="Overwrite the cached training and evaluation sets"
     )
+    #Thiết lặp seed để kết quả giống nhau giữa các lần chạy
     parser.add_argument("--seed", type=int, default=42, help="random seed for initialization")
+    #Bằng thông số thread (số luồng chạy song song)
     parser.add_argument("--n_process", type=int, default=1, help="")
-
+    #"16-bit = số có 4 chữ số", dùng số nhỏ hơn để ít tốn RAM
     parser.add_argument(
         "--fp16",
         action="store_true",
         help="Whether to use 16-bit (mixed) precision (through NVIDIA apex) instead of 32-bit",
     )
+    #Mức độ dùng 16bit (O0 chỉ dùng 32bit, O1 dùng đa số 16bit, O2 hầu hết 16bit, O3 tất cả 16bit)
     parser.add_argument(
         "--fp16_opt_level",
         type=str,
@@ -711,9 +729,13 @@ def main():
         help="For fp16: Apex AMP optimization level selected in ['O0', 'O1', 'O2', and 'O3']."
         "See details at https://nvidia.github.io/apex/amp.html",
     )
+    #Qui định GPU nào chạy code, dùng khi máy có nhiều GPU (mặc định -1 là chỉ dùng CPU hoặc 1 GPU)
     parser.add_argument("--local_rank", type=int, default=-1, help="For distributed training: local_rank")
+    #Địa chỉ máy chủ chạy code (khi muốn debugger từ xa bằng laptop cá nhân)
     parser.add_argument("--server_ip", type=str, default="", help="For distant debugging.")
+    #Cổng kết nối trên máy chủ server để máy nói chuyện khi debugger
     parser.add_argument("--server_port", type=str, default="", help="For distant debugging.")
+    #Một object chứa tất cả tham số command line (VD muốn gọi tham số --fp16 chỉ cần dùng args.fp16)
     args = parser.parse_args()
 
     if args.model_type in ["bert", "roberta", "distilbert", "camembert"] and not args.mlm:
