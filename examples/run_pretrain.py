@@ -561,6 +561,7 @@ def evaluate(args, model: PreTrainedModel, tokenizer: PreTrainedTokenizer, prefi
 
 
 def main():
+    #chương trình chấp nhận tham số nào từ terminal
     parser = argparse.ArgumentParser()
 
     # Required parameters
@@ -578,52 +579,61 @@ def main():
     )
 
     # Other parameters
+    #file dùng để đánh giá
     parser.add_argument(
         "--eval_data_file",
         default=None,
         type=str,
         help="An optional input evaluation data file to evaluate the perplexity on (a text file).",
     )
+    #Quyết định mỗi dòng là 1 câu riêng (dataset đã chia sẵn (1)) hay ghép toàn bộ lại rồi mới chia block xử lý (sách, wiki..)
+    #action="store_true là chỉ cần truyền tham số vô sẽ hiểu là True (1), không truyền hiểu là False (2), dạng gắn cờ
     parser.add_argument(
         "--line_by_line",
         action="store_true",
         help="Whether distinct lines of text in the dataset are to be handled as distinct sequences.",
     )
+    #Tiếp tục training từ điểm checkpoint gần nhất
     parser.add_argument(
         "--should_continue", action="store_true", help="Whether to continue from latest checkpoint in output_dir"
     )
+    #Weight bắt đầu traing lấy từ đâu (pretrained model từ (bert-base-uncased) (1), load checkpoint đã train trước đó (2), train từ đầu nếu không truyền tham số (3))
     parser.add_argument(
         "--model_name_or_path",
         default=None,
         type=str,
         help="The model checkpoint for weights initialization. Leave None if you want to train a model from scratch.",
     )
-
+    #Mô hình training là MLM hay CLM
     parser.add_argument(
         "--mlm", action="store_true", help="Train with masked-language modeling loss instead of language modeling."
     )
+    #Tỉ lệ token bị che trong mô hình
     parser.add_argument(
         "--mlm_probability", type=float, default=0.15, help="Ratio of tokens to mask for masked language modeling loss"
     )
-
+    #Qui định cấu hình kiến trúc model (thường dùng của mô hình đã chỉ định ở model_name_or_path, nếu không thì chỉ định tham số khác, không chỉ định thì máy sẽ tự tạo)
     parser.add_argument(
         "--config_name",
         default=None,
         type=str,
         help="Optional pretrained config name or path if not the same as model_name_or_path. If both are None, initialize a new config.",
     )
+    #Qui định mô hình tokenizer
     parser.add_argument(
         "--tokenizer_name",
         default=None,
         type=str,
         help="Optional pretrained tokenizer name or path if not the same as model_name_or_path. If both are None, initialize a new tokenizer.",
     )
+    #Chỉ định chỗ lưu tạm mô hình pre-train mà mình muốn sử dụng weight ở thông số --model_name_or_path
     parser.add_argument(
         "--cache_dir",
         default=None,
         type=str,
         help="Optional directory to store the pre-trained models downloaded from s3 (instead of the default one)",
     )
+    #Số token tối đa trong mỗi block sau khi đã tokenize
     parser.add_argument(
         "--block_size",
         default=-1,
@@ -632,6 +642,7 @@ def main():
         "The training dataset will be truncated in block of this size for training."
         "Default to the model max input length for single sentence inputs (take into account special tokens).",
     )
+    #Qui định chỉ train, chỉ đánh giá, hay vừa đánh giá trong khi train
     parser.add_argument("--do_train", action="store_true", help="Whether to run training.")
     parser.add_argument("--do_eval", action="store_true", help="Whether to run eval on the dev set.")
     parser.add_argument(
